@@ -1,0 +1,22 @@
+module gaus_filter
+#(
+    parameter DATA_IN_WIDTH = 8
+)(
+    input wire    [DATA_IN_WIDTH-1:0]    d00_in,
+    input wire    [DATA_IN_WIDTH-1:0]    d01_in,
+    input wire    [DATA_IN_WIDTH-1:0]    d02_in,
+    input wire    [DATA_IN_WIDTH-1:0]    d10_in,
+    input wire    [DATA_IN_WIDTH-1:0]    d11_in,
+    input wire    [DATA_IN_WIDTH-1:0]    d12_in,
+    input wire    [DATA_IN_WIDTH-1:0]    d20_in,
+    input wire    [DATA_IN_WIDTH-1:0]    d21_in,
+    input wire    [DATA_IN_WIDTH-1:0]    d22_in,
+    output wire   [DATA_IN_WIDTH-1:0]    ftr_out
+);
+
+    wire [10:0] s1 = d00_in+(d01_in<<1)+d02_in+(d10_in<<1);
+    wire [10:0] s2 = (d11_in<<2)+(d12_in<<1)+d20_in+(d21_in<<1);
+    wire [11:0] s3 = s1+s2+d22_in;
+    assign ftr_out = s3>>4;
+	 
+endmodule
