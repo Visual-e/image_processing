@@ -4,9 +4,9 @@ editor if you plan to continue editing the block that represents it in
 the Block Editor! File corruption is VERY likely to occur.
 */
 /*
-Copyright (C) 2018  Intel Corporation. All rights reserved.
+Copyright (C) 2019  Intel Corporation. All rights reserved.
 Your use of Intel Corporation's design tools, logic functions 
-and other software and tools, and its AMPP partner logic 
+and other software and tools, and any partner logic 
 functions, and any output files from any of the foregoing 
 (including device programming or simulation files), and any 
 associated documentation or information are expressly subject 
@@ -16,13 +16,14 @@ the Intel FPGA IP License Agreement, or other applicable license
 agreement, including, without limitation, that your use is for
 the sole purpose of programming logic devices manufactured by
 Intel and sold by Intel or its authorized distributors.  Please
-refer to the applicable agreement for further details.
+refer to the applicable agreement for further details, at
+https://fpgasoftware.intel.com/eula.
 */
 (header "symbol" (version "1.2"))
 (symbol
-	(rect 0 0 176 200)
+	(rect 0 0 176 192)
 	(text "fifo_bufer" (rect 63 0 123 16)(font "Arial" (font_size 10)))
-	(text "inst" (rect 8 184 25 196)(font "Arial" ))
+	(text "inst" (rect 8 176 25 188)(font "Arial" ))
 	(port
 		(pt 0 48)
 		(input)
@@ -52,13 +53,6 @@ refer to the applicable agreement for further details.
 		(line (pt 0 112)(pt 16 112))
 	)
 	(port
-		(pt 0 144)
-		(input)
-		(text "aclr" (rect 0 0 21 14)(font "Arial" (font_size 8)))
-		(text "aclr" (rect 20 137 36 150)(font "Arial" (font_size 8)))
-		(line (pt 0 144)(pt 16 144))
-	)
-	(port
 		(pt 176 48)
 		(output)
 		(text "q[7..0]" (rect 0 0 35 14)(font "Arial" (font_size 8)))
@@ -68,43 +62,36 @@ refer to the applicable agreement for further details.
 	(port
 		(pt 176 72)
 		(output)
-		(text "full" (rect 0 0 16 14)(font "Arial" (font_size 8)))
-		(text "full" (rect 143 65 155 78)(font "Arial" (font_size 8)))
+		(text "almost_full" (rect 0 0 60 14)(font "Arial" (font_size 8)))
+		(text "almost_full" (rect 106 65 155 78)(font "Arial" (font_size 8)))
 		(line (pt 176 72)(pt 160 72))
 	)
 	(port
 		(pt 176 88)
 		(output)
-		(text "almost_full" (rect 0 0 60 14)(font "Arial" (font_size 8)))
-		(text "almost_full" (rect 106 81 155 94)(font "Arial" (font_size 8)))
+		(text "empty" (rect 0 0 34 14)(font "Arial" (font_size 8)))
+		(text "empty" (rect 128 81 155 94)(font "Arial" (font_size 8)))
 		(line (pt 176 88)(pt 160 88))
 	)
 	(port
 		(pt 176 104)
 		(output)
-		(text "empty" (rect 0 0 34 14)(font "Arial" (font_size 8)))
-		(text "empty" (rect 128 97 155 110)(font "Arial" (font_size 8)))
-		(line (pt 176 104)(pt 160 104))
-	)
-	(port
-		(pt 176 120)
-		(output)
 		(text "usedw[7..0]" (rect 0 0 68 14)(font "Arial" (font_size 8)))
-		(text "usedw[7..0]" (rect 99 113 155 126)(font "Arial" (font_size 8)))
-		(line (pt 176 120)(pt 160 120)(line_width 3))
+		(text "usedw[7..0]" (rect 99 97 155 110)(font "Arial" (font_size 8)))
+		(line (pt 176 104)(pt 160 104)(line_width 3))
 	)
 	(drawing
-		(text "8 bits x 256 words" (rect 83 149 240 309)(font "Arial" ))
-		(text "almost_full at 200" (rect 84 139 241 289)(font "Arial" ))
-		(line (pt 16 132)(pt 160 132))
+		(text "8 bits x 256 words" (rect 83 141 240 293)(font "Arial" ))
+		(text "almost_full at 175" (rect 84 131 241 273)(font "Arial" ))
+		(line (pt 16 124)(pt 160 124))
 		(line (pt 16 32)(pt 160 32))
-		(line (pt 160 32)(pt 160 184))
-		(line (pt 160 184)(pt 16 184))
-		(line (pt 16 184)(pt 16 32))
+		(line (pt 160 32)(pt 160 176))
+		(line (pt 160 176)(pt 16 176))
+		(line (pt 16 176)(pt 16 32))
 		(line (pt 0 0)(pt 177 0))
-		(line (pt 177 0)(pt 177 202))
-		(line (pt 0 202)(pt 177 202))
-		(line (pt 0 0)(pt 0 202))
+		(line (pt 177 0)(pt 177 194))
+		(line (pt 0 194)(pt 177 194))
+		(line (pt 0 0)(pt 0 194))
 		(line (pt 0 0)(pt 0 0))
 		(line (pt 0 0)(pt 0 0))
 		(line (pt 0 0)(pt 0 0))

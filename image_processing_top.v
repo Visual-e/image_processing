@@ -19,22 +19,22 @@ wire [8:0]row;
 wire [9:0]col;
 wire row0,col0;
 reg [14:0]mem_addr;
-reg data_ok;
+reg data_in_en;
 
 wire [7:0] median_out_t, sobel_out_t, gaus_out_t;
 
 
 vga vga_inst(
- .Reset (~reset), 
- .Clk50 (clk_50),
- .VSync (vsync), 
- .HSync (hsync), 
- .PClk (pclk), 
- .Row (row), 
- .Col (col), 
- .Row0 (row0), 
- .Col0 (col0), 
- .Active (active)
+ .reset (~reset), 
+ .clk50 (clk_50),
+ .vSync (vsync), 
+ .hSync (hsync), 
+ .pClk (pclk), 
+ .row (row), 
+ .col (col), 
+ .row0 (row0), 
+ .col0 (col0), 
+ .active (active)
  );
  
 pic_rom	pic_rom (
@@ -44,66 +44,88 @@ pic_rom	pic_rom (
 );
 
 //------------------------------------------------------------------
-wire data_in_en;
-wire [7:0] line3_data;	
+wire [7:0] line3_data;
 
-assign data_in_en=data_ok;
-assign line3_data=pic_rgb;
-
-
-wire line2_wr_rq = (data_in_en && !line2_data_ready);
+// row 3 FIFO
+fifo_bufer line3_fifo (
+	.clock(pclk),
+	.data(pic_rgb),
+	.rdreq(data_in_en),
+	.wrreq(data_in_en),
+	.almost_full(),
+	.empty(),
+	.q(line3_data)
+	);
+	
+wire line2_wr_rq = (data_in_en);
 wire line2_rd_rq = (line2_data_valid && !line1_data_ready);
 wire line2_data_ready;
 wire line2_empty;
 wire line2_data_valid = !line2_empty;
 wire [7:0] line2_data;
 
-
+	
 // row 2 FIFO
-fifo_bufer LINE2_FIFO (
-	.aclr(),
+fifo_bufer line2_fifo (
 	.clock(pclk),
-	.data(line3_data),
+	.data(pic_rgb),
 	.rdreq(line2_rd_rq),
 	.wrreq(line2_wr_rq),
 	.almost_full(line2_data_ready),
 	.empty(line2_empty),
-	.full(),
-	.q(line2_data),
-	.usedw()
+	.q(line2_data)
 	);
 
 
 wire line1_wr_rq = (line2_data_valid && !line1_data_ready);
-wire line1_rd_rq = (line1_data_valid); 	
 wire line1_data_ready;
 wire line1_empty;
 wire line1_data_valid = !line1_empty;
 wire [7:0] line1_data;
 
 // row 1 FIFO
-fifo_bufer LINE1_FIFO (
-	.aclr(),
+fifo_bufer line1_fifo (
 	.clock(pclk),
 	.data(line2_data),
-	.rdreq(line1_rd_rq),
+	.rdreq(line1_rd_rq ),
 	.wrreq(line1_wr_rq),
 	.almost_full(line1_data_ready),
 	.empty(line1_empty),
-	.full(),
-	.q(line1_data),
-	.usedw()
+	.q(line1_data)
 );
+//-------------------------------------------------------------------
+reg [1:0] read_state = 0;
+
+// The first line FIFO read request manager
+always @(posedge pclk or negedge reset)
+	if (!reset) read_state <= 2'd0;
+	else begin
+		case (read_state)
+		2'h0: if (line1_data_ready && line2_data_ready) read_state <= 2'h1;
+		2'h1: if (line1_empty) read_state <= 2'h0;
+		endcase
+	end
+
+reg 	line1_rd_rq = 0;	
+always @(*) begin
+	case(read_state)
+	2'h0: line1_rd_rq = 1'b0;
+	2'h1: line1_rd_rq = data_in_en;
+	endcase
+end	
 	 
 //-------------------------------------------------------------------
 reg [7:0] a0,b0,c0,a1,b1,c1,a2,b2,c2;
 
 always @(posedge pclk or negedge reset)
-    if (!reset) begin
+    if (!reset) 
+	   begin
         a0 <= 8'd0; b0 <= 8'd0; c0 <= 8'd0;
         a1 <= 8'd0; b1 <= 8'd0; c1 <= 8'd0;
         a2 <= 8'd0; b2 <= 8'd0; c2 <= 8'd0;
-    end else begin
+      end 
+	 else 	 
+	   begin
         a0 <= line1_data;
         b0 <= line2_data;
         c0 <= line3_data;
@@ -115,7 +137,8 @@ always @(posedge pclk or negedge reset)
         a2 <= a1;
         b2 <= b1;
         c2 <= c1;
-end
+      end
+
 
 //-------------------------------------------------------------------
 median_top
@@ -182,11 +205,11 @@ parameter width = 176,
 always @(posedge pclk) begin
 if(row>=y_start && col>=x_start && row<y_start+height && col<x_start+width)
 	begin
-	if(row>=y_start && col>=x_start && row<y_start+16 && col<x_start+16)
-		begin
-		data_ok<=1`b;
-		mem_addr<=15'b000000000000000;
-		case(mode_cnt[26:25])
+	  data_in_en<=1'b1;
+	  mem_addr<=(row-y_start)*width+col-x_start;
+	  if(row>=y_start && col>=x_start && row<y_start+16 && col<x_start+16)
+		 begin
+		 case(mode_cnt[26:25])
 			2'b00:
 				begin
 				pic_rgb_out_r<=8'b11111111;
@@ -211,13 +234,11 @@ if(row>=y_start && col>=x_start && row<y_start+height && col<x_start+width)
 				pic_rgb_out_g<=8'b11111111;
 				pic_rgb_out_b<=8'b11111111;
 				end
-		endcase
-		end
-	else
-		begin
-		data_ok<=1`b1;
-		mem_addr<=(row-y_start)*width+col-x_start;
-		case(mode_cnt[26:25])
+		 endcase
+		 end
+	  else
+		 begin
+		 case(mode_cnt[26:25])
 			2'b00:
 				begin
 				pic_rgb_out_r<=pic_rgb;
@@ -243,11 +264,11 @@ if(row>=y_start && col>=x_start && row<y_start+height && col<x_start+width)
 				pic_rgb_out_b<=gaus_out_t;
 				end
 		endcase
-		end
+		end  		
 	end
 else
 	begin
-	data_ok<=1'b0;
+	data_in_en<=1'b0;
 	mem_addr<=15'b000000000000000;
 	pic_rgb_out_r<=8'b00000000;
 	pic_rgb_out_g<=8'b00000000;

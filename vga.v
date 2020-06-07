@@ -7,30 +7,30 @@
  * (The timing was a bit off from official VGA specifications.)
  */
 
-module vga( Reset, Clk50, VSync, HSync, PClk, Row, Col, Row0, Col0, Active );
-    input Reset;
-    output VSync;
-    output HSync;
-    input Clk50;
+module vga( reset, clk50, vSync, hSync, pClk, row, col, row0, col0, active );
+    input reset;
+    output vSync;
+    output hSync;
+    input clk50;
 
     // outputs to data generator
-    output PClk;		// pixel clock
-    output Row0;		// pulse when Row == 0
-    output Col0;		// pulse when Col == 0
-    output [9:0] Col;		// next column
-    output [8:0] Row;		// next row
-    output Active;		//
+    output pClk;		// pixel clock
+    output row0;		// pulse when Row == 0
+    output col0;		// pulse when Col == 0
+    output [9:0] col;		// next column
+    output [8:0] row;		// next row
+    output active;		//
 
-reg PClk;			// pixel clock
-reg Row0;			// pulse when Row == 0
-reg Col0;			// pulse when Col == 0
-reg [12:0] HClock;
-reg [11:0] VClock;
-assign Col = HClock[9:0];
-assign Row = VClock[8:0];
-assign Active = HClock[11] & VClock[10];
-assign VSync = VClock[9];
-assign HSync = HClock[10];
+reg pClk;			// pixel clock
+reg row0;			// pulse when Row == 0
+reg col0;			// pulse when Col == 0
+reg [12:0] hClock;
+reg [11:0] vClock;
+assign col = hClock[9:0];
+assign row = vClock[8:0];
+assign active = hClock[11] & vClock[10];
+assign vSync = vClock[9];
+assign hSync = hClock[10];
 
 /*
  * VGA timing information.
@@ -47,55 +47,55 @@ parameter
     VACTIVE = 9'd479,
     VFRONT  = 9'd9;
 
-wire HStart = ( HClock == {3'b101, HBACK} );
-wire VStart = ( VClock == {3'b101, VBACK} );
+wire hStart = ( hClock == {3'b101, HBACK} );
+wire vStart = ( vClock == {3'b101, VBACK} );
 
 /*
  * make 25 MHz pixelclock
  */
-always @(posedge Clk50)
-       PClk <= Reset ? 0 : ~PClk;
+always @(posedge clk50)
+       pClk <= reset ? 0 : ~pClk;
 
 /*
  * Horizontal timing state machine
  */
-always @(posedge Clk50) begin
-    if( Reset ) begin
-	HClock <= 0;
-	Col0 <= 0;
-    end else if( PClk ) begin
-	casex( HClock )
-	    { 3'bxx0, HSYNC   } : HClock <= { 3'b101, 10'd0 };
-	    { 3'b101, HBACK   } : HClock <= { 3'b011, 10'd0 };
-	    { 3'bx11, HACTIVE } : HClock <= { 3'b001, 10'd0 };
-	    { 3'b001, HFRONT  } : HClock <= { 3'b100, 10'd0 };
+always @(posedge clk50) begin
+    if( reset ) begin
+	hClock <= 0;
+	col0 <= 0;
+    end else if( pClk ) begin
+	casex( hClock )
+	    { 3'bxx0, HSYNC   } : hClock <= { 3'b101, 10'd0 };
+	    { 3'b101, HBACK   } : hClock <= { 3'b011, 10'd0 };
+	    { 3'bx11, HACTIVE } : hClock <= { 3'b001, 10'd0 };
+	    { 3'b001, HFRONT  } : hClock <= { 3'b100, 10'd0 };
 
 	    default:
-		HClock <= { HClock[12:10], HClock[9:0] + 10'd1 };
+		hClock <= { hClock[12:10], hClock[9:0] + 10'd1 };
 	endcase
     end
-    Col0 <= HStart;
+    col0 <= hStart;
 end
 
 /*
  * Vertical timing state machine
  */
-always @(posedge Clk50) begin
-    if( Reset ) begin
-	VClock <= 0;
-	Row0 <= 0;
-    end else if( PClk & HStart ) begin
-	casex ( VClock )
-	    { 3'bxx0, VSYNC   } : VClock <= { 3'b101, 9'd0 };
-	    { 3'b101, VBACK   } : VClock <= { 3'b011, 9'd0 };
-	    { 3'bx11, VACTIVE } : VClock <= { 3'b001, 9'd0 };
-	    { 3'b001, VFRONT  } : VClock <= { 3'b100, 9'd0 };
+always @(posedge clk50) begin
+    if( reset ) begin
+	vClock <= 0;
+	row0 <= 0;
+    end else if( pClk & hStart ) begin
+	casex ( vClock )
+	    { 3'bxx0, VSYNC   } : vClock <= { 3'b101, 9'd0 };
+	    { 3'b101, VBACK   } : vClock <= { 3'b011, 9'd0 };
+	    { 3'bx11, VACTIVE } : vClock <= { 3'b001, 9'd0 };
+	    { 3'b001, VFRONT  } : vClock <= { 3'b100, 9'd0 };
 
 	    default:
-		VClock <= { VClock[11:9], VClock[8:0] + 9'd1};
+		vClock <= { vClock[11:9], vClock[8:0] + 9'd1};
 	endcase
     end
-    Row0 <= HStart & VStart;
+    row0 <= hStart & vStart;
 end
 
 endmodule

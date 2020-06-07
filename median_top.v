@@ -300,7 +300,7 @@ median_node17 (
     .data_li(n16lo_n17li),
 
     .data_ho(n17ho_n19hi),
-    .data_lo(n17lo_ni8hi)
+    .data_lo(n17lo_n18hi)
 );
 
 //Нода 18
